@@ -17,19 +17,49 @@ const ctx = canvas.getContext('2d');
 
 let player = { x:180, y:520, w:28, h:28, vx:0, vy:0, onGround:false };
 let platforms = [];
+const MIN_GAP_X = 40;
+const MAX_GAP_X = 140;
+const MIN_GAP_Y = 90;
+const MAX_GAP_Y = 140;
 let gravity = 0.6;
 let score = 0;
 let gameOver = false;
 
 function reset() {
-  player.x = canvas.width/2 - player.w/2; player.y = 520; player.vx = 0; player.vy = 0;
+  player.x = canvas.width/2 - player.w/2;
+  player.y = 540;
+  player.vx = 0; player.vy = 0;
   platforms = [];
-  // Startplattform (dekker hele bunnen)
+
+  // Startplattform – dekker hele bunnen
   platforms.push({ x:0, y:600, w:canvas.width, h:16 });
-  // Vanlige plattformer over hele bredden
-  for (let i=1;i<6;i++) {
-    platforms.push({ x:Math.random()*(canvas.width-100), y:600-i*120, w:80+Math.random()*80, h:12 });
+
+  // Første "ekte" plattform rett over start
+  platforms.push({
+    x: canvas.width/2 - 60,
+    y: 520,
+    w: 120,
+    h: 12
+  });
+
+  // Flere trygge plattformer oppover
+  let lastX = canvas.width/2 - 60;
+  let lastY = 520;
+
+  for (let i=0;i<5;i++) {
+    const dir = Math.random()<0.5 ? -1 : 1;
+    const dx = dir * (MIN_GAP_X + Math.random()*(MAX_GAP_X-MIN_GAP_X));
+    const dy = MIN_GAP_Y + Math.random()*(MAX_GAP_Y-MIN_GAP_Y);
+
+    let nx = lastX + dx;
+    nx = Math.max(20, Math.min(canvas.width-140, nx));
+
+    let ny = lastY - dy;
+
+    platforms.push({ x:nx, y:ny, w:100, h:12 });
+    lastX = nx; lastY = ny;
   }
+
   score = 0; gameOver = false;
 }
 reset();
@@ -98,13 +128,25 @@ function update() {
 
   // Nye plattformer
   platforms = platforms.filter(p=>p.y<700);
-  while (platforms.length < 6) {
+  while (platforms.length < 8) {
+    const last = platforms[platforms.length-1];
+
+    const dir = Math.random()<0.5 ? -1 : 1;
+    const dx = dir * (MIN_GAP_X + Math.random()*(MAX_GAP_X-MIN_GAP_X));
+    const dy = MIN_GAP_Y + Math.random()*(MAX_GAP_Y-MIN_GAP_Y);
+
+    let nx = last.x + dx;
+    nx = Math.max(20, Math.min(canvas.width-140, nx));
+
+    const ny = last.y - dy;
+
     platforms.push({
-      x: Math.random() * (canvas.width - 120),
-      y: -Math.random() * 140,
-      w: 80 + Math.random() * 120,
+      x: nx,
+      y: ny,
+      w: 100 + Math.random()*40,
       h: 12
     });
+  });
   });
   }
 
